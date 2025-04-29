@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Details{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h2 class="mb-0 gradient-text">Scan Analysis Report</h2>
+        <button class="btn btn-success" onclick="window.print()">
+            <i class="fas fa-print me-2"></i> Print Report
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <!-- Scan Preview -->
+        <div class="col-lg-4">
+            <div class="card mb-4 glassmorphism">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="fas fa-image me-2 text-primary"></i>Scan Preview</h5>
+                </div>
+                {% if scan.filename %}
+                <img src="{{ url_for('static', filename='uploads/' + scan.filename) }}" 
+                     class="card-img-top p-3 scan-image" 
+                     alt="Medical Scan"
+                     style="max-height: 400px; object-fit: contain;">
+                {% else %}
+                <div class="card-body">
+                    <p class="text-danger">Scan image not available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Analysis Results -->
+        <div class="col-lg-8">
+            <div class="card mb-4 glassmorphism">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0"><i class="fas fa-file-medical me-2 text-primary"></i>Diagnostic Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-{{ 'danger' if scan.prediction != 'Normal' else 'success' }} glassmorphism">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <h3 class="alert-heading mb-1 gradient-text">{{ scan.prediction }} Detection</h3>
+                                <p class="mb-0 text-muted">AI Confidence Level</p>
+                            </div>
+                            <div class="display-4 fw-bold ms-3">
+                                {{ "%.1f"|format(scan.confidence * 100) }}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Probability Distribution -->
+                    <div class="card glassmorphism mt-4">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Condition Probabilities</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% for condition, prob in scan.probabilities.items() %}
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center p-3 bg-light rounded-3">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">{{ condition }}</h6>
+                                            <small class="text-muted">Probability</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="h5 mb-0 text-primary">{{ "%.2f"|format(prob * 100) }}%</div>
+                                            <div class="progress" style="height: 4px; width: 80px;">
+                                                <div class="progress-bar bg-primary" 
+                                                     style="width: {{ prob * 100 }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Recommendations -->
+                    <div class="card glassmorphism mt-4">
+                        <div class="card-header bg-white border-0">
+                            <h5 class="mb-0"><i class="fas fa-comment-medical me-2 text-primary"></i>Clinical Recommendations</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ scan.clinical_notes }}</p>
+                            <div class="row g-3 mt-3">
+                                <!-- Medications and Actions remain same with updated styling -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

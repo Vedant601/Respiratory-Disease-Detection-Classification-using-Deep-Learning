@@ -1,0 +1,11 @@
+# Stable working versions
+flask==2.2.5
+werkzeug==2.2.3
+flask-sqlalchemy==3.0.2
+flask-login==0.6.2
+flask-wtf==1.2.1 
+python-dotenv==1.0.0
+tensorflow==2.16.1 
+pillow==10.0.1
+gunicorn==21.2.0
+protobuf==3.20.3 

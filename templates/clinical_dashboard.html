@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Add medical-grade styling and scripts -->
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('analyze-btn').disabled = true;
+        }
+        
+        function handleResponse(response) {
+            if (response.error) {
+                alert('Error: ' + response.error);
+                return;
+            }
+            
+            // Update predictions
+            Object.entries(response.predictions).forEach(([disease, prob]) => {
+                const element = document.getElementById(disease.toLowerCase());
+                if (element) {
+                    element.querySelector('.probability').textContent = `${(prob * 100).toFixed(1)}%`;
+                    element.querySelector('.progress-bar').style.width = `${prob * 100}%`;
+                }
+            });
+            
+            // Update clinical notes
+            const notesList = document.getElementById('clinical-notes');
+            notesList.innerHTML = response.clinical_notes
+                .map(note => `<li class="list-group-item">${note}</li>`)
+                .join('');
+        }
+    </script>
+</head>
+<body>
+    <!-- Authentication Header -->
+    <div class="auth-header">
+        Logged in as: {{ auth.current_user }}
+    </div>
+
+    <!-- Upload Section -->
+    <form onsubmit="showLoading()" enctype="multipart/form-data">
+        <input type="file" name="image" accept=".dcm,.png,.jpg,.jpeg" required>
+        <button id="analyze-btn" type="submit">Analyze</button>
+        
+        <!-- Loading Indicator -->
+        <div id="loading" style="display: none;">
+            <div class="medical-spinner"></div>
+            <p>Analyzing Scan...</p>
+        </div>
+    </form>
+
+    <!-- Results Display -->
+    <div class="results-section">
+        <!-- COVID-19 Card -->
+        <div class="disease-card" id="covid-19">
+            <h3>COVID-19</h3>
+            <div class="probability">0.0%</div>
+            <div class="progress-bar"></div>
+        </div>
+        
+        <!-- Other Disease Cards... -->
+        
+        <!-- Clinical Notes -->
+        <div class="clinical-notes">
+            <h4>Clinical Recommendations</h4>
+            <ul id="clinical-notes" class="list-group"></ul>
+        </div>
+    </div>
+</body>
+</html>

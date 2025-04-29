@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- New Patient Modal -->
+    <div class="modal fade" id="newPatientModal" tabindex="-1" aria-labelledby="newPatientModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content glassmorphism">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title gradient-text"><i class="fas fa-user-plus me-2"></i>New Patient Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('add_patient') }}">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Patient ID</label>
+                                <input type="text" class="form-control" name="patient_id" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted">Full Name</label>
+                                <input type="text" class="form-control" name="full_name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Age</label>
+                                <input type="number" class="form-control" name="age" min="0" max="120" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label text-muted">Gender</label>
+                                <select class="form-select" name="gender" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted">Medical History</label>
+                                <textarea class="form-control" name="medical_history" rows="3" placeholder="Relevant medical background..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary px-4">Register Patient</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Scan Modal -->
+    <div class="modal fade" id="uploadScanModal" tabindex="-1" aria-labelledby="uploadScanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content glassmorphism">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title gradient-text"><i class="fas fa-upload me-2"></i>Upload Medical Scan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('analyze_scan') }}" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label text-muted">Select Patient</label>
+                                <select class="form-select" name="patient_id" required>
+                                    {% for patient in patients %}
+                                    <option value="{{ patient.id }}">{{ patient.full_name }} (ID: {{ patient.patient_id }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted">Scan File Upload</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" name="scan" accept=".png,.jpg,.jpeg,.dcm" required>
+                                    <span class="input-group-text bg-primary text-white">
+                                        <i class="fas fa-x-ray"></i>
+                                    </span>
+                                </div>
+                                <small class="text-muted mt-2 d-block">Supported formats: DICOM, PNG, JPG/JPEG (Max 16MB)</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-microscope me-2"></i>Analyze Now
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
+        <h1 class="h3 mb-0">Welcome, <span class="gradient-text">{{ current_user.username }}</span></h1>
+        <div class="btn-toolbar mb-2 mb-md-0 gap-2">
+            <button class="btn btn-primary px-4 hover-lift" data-bs-toggle="modal" data-bs-target="#newPatientModal">
+                <i class="fas fa-user-plus me-2"></i>New Patient
+            </button>
+            <button class="btn btn-primary px-4 hover-lift" data-bs-toggle="modal" data-bs-target="#uploadScanModal">
+                <i class="fas fa-upload me-2"></i>Upload Scan
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card glassmorphism-hover border-0 overflow-hidden">
+                <div class="card-body position-relative">
+                    <div class="position-absolute end-0 top-0 opacity-10">
+                        <i class="fas fa-users fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="card-title mb-3 text-muted"><i class="fas fa-users me-2"></i>Total Patients</h5>
+                    <h2 class="card-text display-5 fw-bold gradient-text">{{ patients|length }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success-soft rounded-pill me-2">+2.4%</span>
+                        <small class="text-muted">from last month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card glassmorphism-hover border-0 overflow-hidden">
+                <div class="card-body position-relative">
+                    <div class="position-absolute end-0 top-0 opacity-10">
+                        <i class="fas fa-x-ray fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="card-title mb-3 text-muted"><i class="fas fa-x-ray me-2"></i>Total Scans</h5>
+                    <h2 class="card-text display-5 fw-bold gradient-text">{{ recent_scans|length }}</h2>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-danger-soft rounded-pill me-2">+15.7%</span>
+                        <small class="text-muted">last 30 days</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card glassmorphism border-0">
+                <div class="card-header bg-transparent d-flex align-items-center justify-content-between border-0">
+                    <h5 class="mb-0"><i class="fas fa-wave-pulse me-2 text-primary"></i>Recent Scans</h5>
+                    <a href="#" class="btn btn-sm btn-soft-primary">View All <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+                <div class="card-body">
+                    {% for scan in recent_scans %}
+                    <a href="{{ url_for('scan_details', scan_id=scan.id) }}" class="text-decoration-none text-dark">
+                        <div class="list-group-item list-group-item-action d-flex align-items-center rounded-3 mb-2 p-3 border-0 hover-lift">
+                            <div class="icon-shape bg-primary-soft text-primary rounded-circle p-2 me-3">
+                                <i class="fas fa-lungs fa-fw"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ scan.prediction }}</h6>
+                                <small class="text-muted">{{ scan.timestamp.strftime('%b %d, %Y %H:%M') }}</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-3" style="height: 8px; width: 100px;">
+                                    <div class="progress-bar bg-primary rounded-pill" 
+                                         style="width: {{ scan.confidence * 100 }}%"></div>
+                                </div>
+                                <span class="badge bg-primary-soft text-primary rounded-pill">{{ "%.1f"|format(scan.confidence * 100) }}%</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card glassmorphism border-0">
+                <div class="card-header bg-transparent d-flex align-items-center justify-content-between border-0">
+                    <h5 class="mb-0"><i class="fas fa-user-injured me-2 text-primary"></i>Recent Patients</h5>
+                    <a href="#" class="btn btn-sm btn-soft-primary">View All <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+                <div class="card-body">
+                    {% for patient in patients %}
+                    <div class="list-group-item d-flex align-items-center rounded-3 mb-2 p-3 border-0 hover-lift">
+                        <div class="icon-shape bg-secondary-soft text-secondary rounded-circle p-2 me-3">
+                            <i class="fas fa-user-circle fa-fw"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ patient.full_name }}</h6>
+                            <small class="text-muted">ID: {{ patient.patient_id }}</small>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-muted" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-medical me-2"></i>View Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-notes-medical me-2"></i>Add Note</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
